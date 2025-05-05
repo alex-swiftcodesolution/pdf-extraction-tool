@@ -61,10 +61,13 @@ export default function Home() {
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://localhost:8000/extract-tables", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "https://pdf-extraction-tool-backend-production.up.railway.app/extract-tables",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to extract tables.");
