@@ -2,13 +2,21 @@
 
 import { useState } from "react";
 import axios, { AxiosError } from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 import { ApiResponse, TableData } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Loader2, UploadCloud } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [tables, setTables] = useState<TableData[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  // const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -22,6 +30,7 @@ export default function Home() {
   const handleUpload = async () => {
     if (!file) {
       setError("Please select a PDF file.");
+      toast("Please select a PDF file.");
       return;
     }
 
@@ -32,6 +41,7 @@ export default function Home() {
     try {
       const response = await axios.post<ApiResponse>(
         "pdf-extraction-tool-backend-production.up.railway.app/upload-pdf/",
+        // "http://localhost:8000/upload-pdf/",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -44,104 +54,170 @@ export default function Home() {
           JSON.stringify(response.data.tables, null, 2)
         );
         setTables(response.data.tables);
+        toast(`Extracted ${response.data.tables.length} tables from PDF.`);
       } else {
         setError(response.data.message || "No tables found.");
+        toast(
+          response.data.message ||
+            "The PDF didn't contain any extractable tables."
+        );
       }
     } catch (err) {
       const error = err as AxiosError<{ detail?: string }>;
-      setError(error.response?.data?.detail || "Error uploading PDF.");
+      const errorMessage =
+        error.response?.data?.detail || "Error uploading PDF.";
+      setError(errorMessage);
+      toast(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full p-6">
-      <h1 className="text-2xl font-bold mb-4">PDF Table Extractor</h1>
+    <div className="w-full p-6 max-w-6xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-3xl font-bold mb-6 text-center">
+          PDF Table Extractor
+        </h1>
 
-      {/* File Upload */}
-      <div className="mb-6">
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={handleFileChange}
-          className="mb-2 p-2 border rounded"
-        />
-        <button
-          onClick={handleUpload}
-          disabled={loading}
-          className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed`}
-        >
-          {loading ? "Processing..." : "Upload PDF"}
-        </button>
-      </div>
+        <Card className="mb-8">
+          <CardHeader>
+            <h2 className="text-xl font-semibold">Upload PDF</h2>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col space-y-4">
+              <div className="grid w-full max-w-sm items-center gap-1.5">
+                <Label htmlFor="pdf-upload">PDF File</Label>
+                <Input
+                  id="pdf-upload"
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileChange}
+                />
+              </div>
 
-      {/* Error Message */}
-      {error && <p className="text-red-600 mb-4">{error}</p>}
+              <Button
+                onClick={handleUpload}
+                disabled={loading}
+                className="w-full sm:w-auto"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud className="mr-2 h-4 w-4" />
+                    Upload PDF
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Tables Display */}
-      {tables.length > 0 && (
-        <div>
-          {tables.map((table, index) => {
-            // Get column headers, excluding metadata
-            const columns = Object.keys(table.data[0] || {}).filter(
-              (key) => key !== "Source_Text" && key !== "Page_Number"
-            );
-            console.log(`Table ${index + 1} columns:`, columns);
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6"
+            >
+              <p className="text-red-600">{error}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
-            if (!columns.length) {
+      {/* Tables Display - Kept the same as original but wrapped in animations */}
+      <AnimatePresence>
+        {tables.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ staggerChildren: 0.1 }}
+          >
+            {tables.map((table, index) => {
+              // Get column headers, excluding metadata
+              const columns = Object.keys(table.data[0] || {}).filter(
+                (key) => key !== "Source_Text" && key !== "Page_Number"
+              );
+              console.log(`Table ${index + 1} columns:`, columns);
+
+              if (!columns.length) {
+                return (
+                  <motion.div
+                    key={index}
+                    className="mb-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <h2 className="text-xl font-semibold mb-2">
+                      Table from {table.source_text} (Page {table.page_number})
+                    </h2>
+                    <p className="text-red-600">
+                      No columns found for this table.
+                    </p>
+                  </motion.div>
+                );
+              }
+
               return (
-                <div key={index} className="mb-8">
+                <motion.div
+                  key={index}
+                  className="mb-8 w-full"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
                   <h2 className="text-xl font-semibold mb-2">
                     Table from {table.source_text} (Page {table.page_number})
                   </h2>
-                  <p className="text-red-600">
-                    No columns found for this table.
-                  </p>
-                </div>
-              );
-            }
-
-            return (
-              <div key={index} className="mb-8 w-full">
-                <h2 className="text-xl font-semibold mb-2">
-                  Table from {table.source_text} (Page {table.page_number})
-                </h2>
-                <div className="w-full">
-                  <table className="w-full border-collapse border border-gray-400 table-fixed">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        {columns.map((header) => (
-                          <th
-                            key={header}
-                            className="border border-gray-400 px-4 py-2 text-left text-sm font-medium"
-                          >
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {table.data.map((row, rowIdx) => (
-                        <tr key={rowIdx} className="even:bg-gray-50">
-                          {columns.map((col) => (
-                            <td
-                              key={col}
-                              className="border border-gray-400 px-4 py-2 text-sm text-wrap"
+                  <div className="w-full overflow-x-auto">
+                    <table className="w-full border-collapse border border-gray-200 table-fixed">
+                      <thead>
+                        <tr className="bg-gray-100 dark:bg-gray-800">
+                          {columns.map((header) => (
+                            <th
+                              key={header}
+                              className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-sm font-medium"
                             >
-                              {row[col] ?? ""}
-                            </td>
+                              {header}
+                            </th>
                           ))}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+                      </thead>
+                      <tbody>
+                        {table.data.map((row, rowIdx) => (
+                          <tr
+                            key={rowIdx}
+                            className="even:bg-gray-50 dark:even:bg-gray-900/50"
+                          >
+                            {columns.map((col) => (
+                              <td
+                                key={col}
+                                className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm text-wrap"
+                              >
+                                {row[col] ?? ""}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
