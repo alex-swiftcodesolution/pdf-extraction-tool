@@ -31,7 +31,7 @@ export default function Home() {
 
     try {
       const response = await axios.post<ApiResponse>(
-        "http://localhost:8000/upload-pdf/",
+        "pdf-extraction-tool-backend-production.up.railway.app/upload-pdf/",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
