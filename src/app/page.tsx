@@ -16,7 +16,6 @@ export default function Home() {
   const [tables, setTables] = useState<TableData[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  // const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -40,8 +39,8 @@ export default function Home() {
 
     try {
       const response = await axios.post<ApiResponse>(
-        "https://pdf-extraction-tool-backend-production.up.railway.app/upload-pdf/",
-        // "http://localhost:8000/upload-pdf/",
+        // "https://pdf-extraction-tool-backend-production.up.railway.app/upload-pdf/",
+        "http://localhost:8000/upload-pdf/",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
