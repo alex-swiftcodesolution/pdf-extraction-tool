@@ -1,7 +1,7 @@
 export interface TableRow {
   [key: string]: string | number | null;
-  Source_Text?: string; // Optional, only in pdfplumber tables
-  Page_Number?: number; // Optional, only in pdfplumber tables
+  Source_Text: string | null; // Optional, only in pdfplumber tables
+  Page_Number: number | null; // Optional, only in pdfplumber tables
 }
 
 export interface TableData {
