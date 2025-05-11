@@ -1,12 +1,14 @@
 export interface TableRow {
   [key: string]: string | number | null;
-  Source_Text: string;
-  Page_Number: number;
+  Source_Text?: string; // Optional, only in pdfplumber tables
+  Page_Number?: number; // Optional, only in pdfplumber tables
 }
 
 export interface TableData {
-  source_text: string;
-  page_number: number;
+  source: string;
+  page: number;
+  keyword: string;
+  extractor: "PyMuPDF" | "pdfplumber";
   data: TableRow[];
 }
 

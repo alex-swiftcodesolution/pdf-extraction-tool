@@ -39,8 +39,8 @@ export default function Home() {
 
     try {
       const response = await axios.post<ApiResponse>(
-        // "https://pdf-extraction-tool-backend-production.up.railway.app/upload-pdf/",
-        "http://localhost:8000/upload-pdf/",
+        // "http://localhost:8000/upload-pdf/",
+        "https://pdf-extraction-tool-backend-production.up.railway.app/upload-pdf/",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -134,7 +134,6 @@ export default function Home() {
         </AnimatePresence>
       </motion.div>
 
-      {/* Tables Display - Kept the same as original but wrapped in animations */}
       <AnimatePresence>
         {tables.length > 0 && (
           <motion.div
@@ -158,8 +157,14 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0 }}
                   >
                     <h2 className="text-xl font-semibold mb-2">
-                      Table from {table.source_text} (Page {table.page_number})
+                      Table from {table.source} (Page {table.page})
                     </h2>
+                    <p className="text-gray-600 mb-2">
+                      <strong>Keyword:</strong> {table.keyword}
+                    </p>
+                    <p className="text-gray-600 mb-2">
+                      <strong>Extractor:</strong> {table.extractor}
+                    </p>
                     <p className="text-red-600">
                       No columns found for this table.
                     </p>
@@ -176,8 +181,14 @@ export default function Home() {
                   transition={{ duration: 0.3 }}
                 >
                   <h2 className="text-xl font-semibold mb-2">
-                    Table from {table.source_text} (Page {table.page_number})
+                    Table from {table.source} (Page {table.page})
                   </h2>
+                  <p className="text-gray-600 mb-2">
+                    <strong>Keyword:</strong> {table.keyword}
+                  </p>
+                  <p className="text-gray-600 mb-2">
+                    <strong>Extractor:</strong> {table.extractor}
+                  </p>
                   <div className="w-full overflow-x-auto">
                     <table className="w-full border-collapse border border-gray-200 table-fixed">
                       <thead>
