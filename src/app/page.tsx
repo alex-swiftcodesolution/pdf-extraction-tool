@@ -39,8 +39,8 @@ export default function Home() {
 
     try {
       const response = await axios.post<ApiResponse>(
-        // "http://localhost:8000/upload-pdf/",
-        "https://pdf-extraction-tool-backend-production.up.railway.app/upload-pdf/",
+        "http://localhost:8000/upload-pdf/",
+        // "https://pdf-extraction-tool-backend-production.up.railway.app/upload-pdf/",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -48,10 +48,6 @@ export default function Home() {
       );
 
       if (response.data.tables) {
-        console.log(
-          "Received tables:",
-          JSON.stringify(response.data.tables, null, 2)
-        );
         setTables(response.data.tables);
         toast(`Extracted ${response.data.tables.length} tables from PDF.`);
       } else {
@@ -140,23 +136,29 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ staggerChildren: 0.1 }}
+            className="flex flex-wrap gap-0" // Flex container for tables
           >
             {tables.map((table, index) => {
               // Get column headers, excluding metadata
               const columns = Object.keys(table.data[0] || {}).filter(
                 (key) => key !== "Source_Text" && key !== "Page_Number"
               );
-              console.log(`Table ${index + 1} columns:`, columns);
 
               if (!columns.length) {
                 return (
                   <motion.div
                     key={index}
-                    className="mb-8"
+                    className={`mb-8 ${
+                      index === 0
+                        ? "w-[80%]"
+                        : index === 1
+                        ? "w-[20%]"
+                        : "w-full"
+                    }`} // Conditional width
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
-                    <h2 className="text-xl font-semibold mb-2">
+                    {/* <h2 className="text-xl font-semibold mb-2">
                       Table from {table.source} (Page {table.page})
                     </h2>
                     <p className="text-gray-600 mb-2">
@@ -167,7 +169,7 @@ export default function Home() {
                     </p>
                     <p className="text-red-600">
                       No columns found for this table.
-                    </p>
+                    </p> */}
                   </motion.div>
                 );
               }
@@ -175,12 +177,14 @@ export default function Home() {
               return (
                 <motion.div
                   key={index}
-                  className="mb-8 w-full"
+                  className={`mb-8 ${
+                    index === 0 ? "w-[85%]" : index === 1 ? "w-[15%]" : "w-full"
+                  }`} // Conditional width
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <h2 className="text-xl font-semibold mb-2">
+                  {/* <h2 className="text-xl font-semibold mb-2">
                     Table from {table.source} (Page {table.page})
                   </h2>
                   <p className="text-gray-600 mb-2">
@@ -188,7 +192,7 @@ export default function Home() {
                   </p>
                   <p className="text-gray-600 mb-2">
                     <strong>Extractor:</strong> {table.extractor}
-                  </p>
+                  </p> */}
                   <div className="w-full overflow-x-auto">
                     <table className="w-full border-collapse border border-gray-200 table-fixed">
                       <thead>
@@ -196,7 +200,7 @@ export default function Home() {
                           {columns.map((header) => (
                             <th
                               key={header}
-                              className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-sm font-medium"
+                              className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-center text-xs font-medium"
                             >
                               {header}
                             </th>
@@ -212,7 +216,7 @@ export default function Home() {
                             {columns.map((col) => (
                               <td
                                 key={col}
-                                className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm text-wrap"
+                                className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-xs text-wrap text-right"
                               >
                                 {row[col] ?? ""}
                               </td>
