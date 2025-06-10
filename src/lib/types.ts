@@ -14,5 +14,14 @@ export interface TableData {
 
 export interface ApiResponse {
   tables?: TableData[];
+  fields?: {
+    illustration_date: string | null;
+    insured_name: string | null;
+    initial_death_benefit: string | null;
+    assumed_ror: string | null;
+    minimum_initial_pmt: string | null;
+  };
   message?: string;
 }
+
+// "https://pdf-extraction-tool-backend-production.up.railway.app/upload-pdf/",

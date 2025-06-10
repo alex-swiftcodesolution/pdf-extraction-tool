@@ -11,9 +11,17 @@ import { Label } from "@/components/ui/label";
 import { Loader2, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 
+// Utility function to format field names for display
+const formatFieldName = (field: string): string => {
+  return field
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [tables, setTables] = useState<TableData[]>([]);
+  const [fields, setFields] = useState<ApiResponse["fields"] | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -23,6 +31,7 @@ export default function Home() {
       setFile(selectedFile);
       setError("");
       setTables([]);
+      setFields(null);
     }
   };
 
@@ -39,8 +48,7 @@ export default function Home() {
 
     try {
       const response = await axios.post<ApiResponse>(
-        "http://localhost:8000/upload-pdf/",
-        // "https://pdf-extraction-tool-backend-production.up.railway.app/upload-pdf/",
+        "https://iul-calculator-pro-production.up.railway.app/upload-pdf/",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -49,6 +57,7 @@ export default function Home() {
 
       if (response.data.tables) {
         setTables(response.data.tables);
+        setFields(response.data.fields || null);
         toast(`Extracted ${response.data.tables.length} tables from PDF.`);
       } else {
         setError(response.data.message || "No tables found.");
@@ -69,31 +78,26 @@ export default function Home() {
   };
 
   return (
-    <div className="w-full p-6 max-w-6xl mx-auto">
+    <div className="w-full p-6 mx-auto">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-3xl font-bold mb-6 text-center">
+        <h1 className="text-xl font-bold mb-6 text-center">
           PDF Table Extractor
         </h1>
 
         <Card className="mb-8">
-          <CardHeader>
-            <h2 className="text-xl font-semibold">Upload PDF</h2>
-          </CardHeader>
           <CardContent>
             <div className="flex flex-col space-y-4">
-              <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="pdf-upload">PDF File</Label>
-                <Input
-                  id="pdf-upload"
-                  type="file"
-                  accept="application/pdf"
-                  onChange={handleFileChange}
-                />
-              </div>
+              <Label htmlFor="pdf-upload">PDF File</Label>
+              <Input
+                id="pdf-upload"
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileChange}
+              />
 
               <Button
                 onClick={handleUpload}
@@ -128,6 +132,39 @@ export default function Home() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Fields Display Card */}
+        <AnimatePresence>
+          {fields && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="mb-8"
+            >
+              <Card>
+                <CardHeader>
+                  <h2 className="text-xl font-semibold">Extracted Fields</h2>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {Object.entries(fields).map(([key, value]) => (
+                      <div key={key} className="flex flex-col">
+                        <span className="font-medium">
+                          {formatFieldName(key)}:
+                        </span>
+                        <span className="text-gray-600">
+                          {value !== null ? value : "null"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       <AnimatePresence>
@@ -136,10 +173,9 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ staggerChildren: 0.1 }}
-            className="flex flex-wrap gap-0" // Flex container for tables
+            className="flex flex-wrap gap-0"
           >
             {tables.map((table, index) => {
-              // Get column headers, excluding metadata
               const columns = Object.keys(table.data[0] || {}).filter(
                 (key) => key !== "Source_Text" && key !== "Page_Number"
               );
@@ -154,23 +190,10 @@ export default function Home() {
                         : index === 1
                         ? "w-[20%]"
                         : "w-full"
-                    }`} // Conditional width
+                    }`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                  >
-                    {/* <h2 className="text-xl font-semibold mb-2">
-                      Table from {table.source} (Page {table.page})
-                    </h2>
-                    <p className="text-gray-600 mb-2">
-                      <strong>Keyword:</strong> {table.keyword}
-                    </p>
-                    <p className="text-gray-600 mb-2">
-                      <strong>Extractor:</strong> {table.extractor}
-                    </p>
-                    <p className="text-red-600">
-                      No columns found for this table.
-                    </p> */}
-                  </motion.div>
+                  ></motion.div>
                 );
               }
 
@@ -179,20 +202,11 @@ export default function Home() {
                   key={index}
                   className={`mb-8 ${
                     index === 0 ? "w-[85%]" : index === 1 ? "w-[15%]" : "w-full"
-                  }`} // Conditional width
+                  }`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {/* <h2 className="text-xl font-semibold mb-2">
-                    Table from {table.source} (Page {table.page})
-                  </h2>
-                  <p className="text-gray-600 mb-2">
-                    <strong>Keyword:</strong> {table.keyword}
-                  </p>
-                  <p className="text-gray-600 mb-2">
-                    <strong>Extractor:</strong> {table.extractor}
-                  </p> */}
                   <div className="w-full overflow-x-auto">
                     <table className="w-full border-collapse border border-gray-200 table-fixed">
                       <thead>
