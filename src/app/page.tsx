@@ -109,14 +109,10 @@ export default function Home() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
-          PDF Table Extractor
-        </h1>
-
         <Card className="mb-8">
-          <CardContent className="pt-6">
-            <div className="flex flex-col space-y-4">
-              <Label htmlFor="pdf-upload" className="text-lg font-semibold">
+          <CardContent>
+            <div className="space-y-4">
+              <Label htmlFor="pdf-upload" className="text-xl font-bold">
                 Upload PDF File
               </Label>
               <div className="relative">
@@ -148,7 +144,7 @@ export default function Home() {
               <Button
                 onClick={handleUpload}
                 disabled={loading || !file}
-                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >
                 {loading ? (
                   <>
@@ -191,16 +187,17 @@ export default function Home() {
               transition={{ duration: 0.3 }}
               className="mb-8"
             >
-              <Card>
+              <Card className="text-center">
                 <CardHeader>
-                  <h2 className="text-xl sm:text-2xl font-semibold">
-                    Extracted Fields
-                  </h2>
+                  <h2 className="text-xl font-bold">Extracted Fields</h2>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 max-h-96 overflow-y-auto">
                     {Object.entries(fields).map(([key, value]) => (
-                      <div key={key} className="flex flex-col">
+                      <div
+                        key={key}
+                        className="flex flex-col bg-gray-200 p-2 rounded-md"
+                      >
                         <span className="font-medium text-sm">
                           {formatFieldName(key)}:
                         </span>
